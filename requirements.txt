@@ -8,3 +8,4 @@ opencv-python-headless
 Pillow
 scikit-learn
 numpy
+python-multipart
