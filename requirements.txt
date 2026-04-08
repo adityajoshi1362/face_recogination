@@ -1,9 +1,10 @@
-flask
-flask-cors
+fastapi
+uvicorn
+gunicorn
+torch --index-url https://download.pytorch.org/whl/cpu
+torchvision --index-url https://download.pytorch.org/whl/cpu
 facenet-pytorch
-torch
-torchvision
-opencv-python
+opencv-python-headless
 Pillow
 scikit-learn
 numpy
