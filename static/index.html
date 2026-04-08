@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FaceID | Recognition Dashboard</title>
+<!-- Using Inter font for a clean, professional look -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f4f6;
+    --surface: #ffffff;
+    --panel: #ffffff;
+    --border: #e5e7eb;
+    --accent: #2563eb; /* Professional Blue */
+    --accent-hover: #1d4ed8;
+    --green: #10b981;
+    --red: #ef4444;
+    --warn: #f59e0b;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    background: var(--accent);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d1d5db;
+  }
+
+  .status-dot.active { background: var(--green); }
+  .status-dot.running { background: var(--accent); animation: pulse 1.5s infinite; }
+
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+  /* ── LAYOUT ── */
+  .main-container {
+    max-width: 1400px;
+    margin: 24px auto;
+    width: 100%;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    flex: 1;
+  }
+
+  /* ── CAMERA ZONE ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .viewport-container {
+    position: relative;
+    background: #000;
+    aspect-ratio: 16/9;
+    width: 100%;
+  }
+
+  video, canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .controls {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  .btn-outline {
+    background: white;
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .btn-outline:hover { background: var(--bg); }
+
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .face-list {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .face-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .face-avatar {
+    width: 40px;
+    height: 40px;
+    background: #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+  }
+
+  .face-info { flex: 1; }
+  .face-name { font-weight: 600; font-size: 0.9rem; }
+  .face-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .stat-box {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-val { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+  .log-container {
+    padding: 16px;
+    max-height: 250px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+  }
+
+  .log-entry {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bg);
+    display: flex;
+    gap: 8px;
+  }
+
+  .log-time { color: var(--muted); font-weight: 500; }
+
+  @media (max-width: 1024px) {
+    .main-container { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
+    <div class="logo-text">FaceID Manager</div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">System Offline</span>
+  </div>
+</header>
+
+<div class="main-container">
+  
+  <div class="content-left">
+    <div class="card">
+      <div class="card-header">Live Monitoring Feed</div>
+      <div class="viewport-container">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div class="controls">
+        <button class="btn btn-primary" id="btnStart">Start Camera</button>
+        <button class="btn btn-outline" id="btnStop" disabled>Stop Feed</button>
+        <span style="margin-left:auto; font-size: 0.75rem; color: var(--muted);" id="fpsDisplay">0 FPS</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <!-- Detections -->
+    <div class="card">
+      <div class="card-header">Active Detections</div>
+      <div class="face-list" id="faceList">
+        <div style="text-align:center; padding: 20px; color: var(--muted); font-size: 0.85rem;">No faces detected</div>
+      </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="card">
+      <div class="card-header">Session Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-val" id="statFrames">0</div><div class="stat-label">Processed</div></div>
+        <div class="stat-box"><div class="stat-val" id="statKnown">0</div><div class="stat-label">Known</div></div>
+      </div>
+    </div>
+
+    <!-- Event Log -->
+    <div class="card">
+      <div class="card-header">Activity Log</div>
+      <div class="log-container" id="logList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Logic updated to match your Python API
+const API_BASE = window.location.origin;
+
+let stream = null;
+let sendInterval = null;
+let running = false;
+let stats = { frames: 0, known: 0 };
+let fpsTs = [];
+
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const ctx = overlay.getContext('2d');
+const btnStart = document.getElementById('btnStart');
+const btnStop = document.getElementById('btnStop');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const faceList = document.getElementById('faceList');
+const logList = document.getElementById('logList');
+
+function log(msg) {
+  const t = new Date().toLocaleTimeString([], { hour12: false });
+  const el = document.createElement('div');
+  el.className = 'log-entry';
+  el.innerHTML = `<span class="log-time">${t}</span><span>${msg}</span>`;
+  logList.prepend(el);
+}
+
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    await new Promise(r => video.onloadedmetadata = r);
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+    
+    running = true;
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+    statusDot.className = 'status-dot running';
+    statusText.innerText = 'System Running';
+    
+    sendInterval = setInterval(captureAndSend, 400);
+    log("Camera initialized");
+  } catch (err) {
+    alert("Camera access denied");
+  }
+}
+
+function stopCamera() {
+  running = false;
+  clearInterval(sendInterval);
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  video.srcObject = null;
+  btnStart.disabled = false;
+  btnStop.disabled = true;
+  statusDot.className = 'status-dot';
+  statusText.innerText = 'System Offline';
+  ctx.clearRect(0,0,overlay.width, overlay.height);
+}
+
+async function captureAndSend() {
+  if (!running) return;
+  const capCanvas = document.createElement('canvas');
+  capCanvas.width = video.videoWidth;
+  capCanvas.height = video.videoHeight;
+  capCanvas.getContext('2d').drawImage(video, 0, 0);
+  
+  const base64Img = capCanvas.toDataURL('image/jpeg', 0.7);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/recognize_frame`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: base64Img, threshold: 50.0 })
+    });
+    const data = await res.json();
+    draw(data.faces);
+    updateSidebar(data.faces);
+  } catch (e) { console.error(e); }
+}
+
+function draw(faces) {
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
+  if (!faces) return;
+  
+  faces.forEach(f => {
+    const [x1, y1, x2, y2] = f.box;
+    ctx.strokeStyle = f.label === 'Unknown' ? '#ef4444' : '#2563eb';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x1, y1, x2-x1, y2-y1);
+    
+    ctx.fillStyle = f.label === 'Unknown' ? '#ef4444' : '#2563eb';
+    ctx.font = 'bold 14px Inter';
+    ctx.fillText(`${f.label} (${Math.round(f.confidence)}%)`, x1, y1 > 20 ? y1 - 10 : y1 + 20);
+  });
+}
+
+function updateSidebar(faces) {
+  stats.frames++;
+  document.getElementById('statFrames').innerText = stats.frames;
+  
+  if (!faces || faces.length === 0) {
+    faceList.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted); font-size: 0.85rem;">No faces detected</div>';
+    return;
+  }
+
+  faceList.innerHTML = '';
+  faces.forEach(f => {
+    if(f.label !== 'Unknown') stats.known++;
+    const item = document.createElement('div');
+    item.className = 'face-item';
+    item.innerHTML = `
+      <div class="face-avatar">?</div>
+      <div class="face-info">
+        <div class="face-name">${f.label}</div>
+        <div class="face-meta">Confidence: ${Math.round(f.confidence)}%</div>
+      </div>
+    `;
+    faceList.appendChild(item);
+  });
+  document.getElementById('statKnown').innerText = stats.known;
+}
+
+btnStart.onclick = startCamera;
+btnStop.onclick = stopCamera;
+</script>
+</body>
+</html>
